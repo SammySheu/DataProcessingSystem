@@ -119,18 +119,18 @@ public class DataProcessingSystem {
     private static void addTasksToQueue(SharedTaskQueue taskQueue) {
         logger.info("Adding tasks to queue...");
         
-        String[] dataTypes = {
-            "CustomerData", "SalesData", "InventoryData", 
-            "LogData", "AnalyticsData", "UserActivity",
-            "TransactionData", "SensorData", "ReportData", "MetricsData"
-        };
+        // String[] dataTypes = {
+        //     "CustomerData", "SalesData", "InventoryData", 
+        //     "LogData", "AnalyticsData", "UserActivity",
+        //     "TransactionData", "SensorData", "ReportData", "MetricsData"
+        // };
         
         // All tasks will compute Fibonacci(30) for consistent CPU-intensive work
         int fibNumber = 43;
         
         for (int i = 1; i <= NUM_TASKS; i++) {
-            String data = dataTypes[(i - 1) % dataTypes.length] + "_" + i;
-            Task task = new Task(i, data, fibNumber);
+            // String data = dataTypes[(i - 1) % dataTypes.length] + "_" + i;
+            Task task = new Task(i, fibNumber);
             taskQueue.addTask(task);
         }
         

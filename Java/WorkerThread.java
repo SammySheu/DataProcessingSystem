@@ -94,8 +94,8 @@ public class WorkerThread implements Runnable {
             long fibResult = fibonacci(task.getFibonacciNumber());
             
             // Process the data with computation result
-            String processedData = String.format("%s_PROCESSED_BY_%s_FIB(%d)=%d",
-                task.getData().toUpperCase(), workerName, task.getFibonacciNumber(), fibResult);
+            String processedData = String.format("Task%d_PROCESSED_BY_%s_FIB(%d)=%d", 
+                task.getTaskId(), workerName, task.getFibonacciNumber(), fibResult);
             
             long endTime = System.currentTimeMillis();
             

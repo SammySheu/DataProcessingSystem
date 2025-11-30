@@ -3,12 +3,10 @@
  */
 public class Task {
     private final int taskId;
-    private final String data;
     private final int fibonacciNumber; // Fibonacci number to calculate (CPU-intensive)
 
-    public Task(int taskId, String data, int fibonacciNumber) {
+    public Task(int taskId, int fibonacciNumber) {
         this.taskId = taskId;
-        this.data = data;
         this.fibonacciNumber = fibonacciNumber;
     }
 
@@ -16,9 +14,9 @@ public class Task {
         return taskId;
     }
 
-    public String getData() {
-        return data;
-    }
+    // public String getData() {
+    //     return data;
+    // }
 
     public int getFibonacciNumber() {
         return fibonacciNumber;
@@ -28,7 +26,7 @@ public class Task {
     public String toString() {
         return "Task{" +
                 "taskId=" + taskId +
-                ", data='" + data + '\'' +
+                // ", data='" + data + '\'' +
                 ", fibonacciNumber=" + fibonacciNumber +
                 '}';
     }
