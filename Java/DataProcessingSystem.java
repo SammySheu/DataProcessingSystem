@@ -2,8 +2,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
@@ -31,7 +33,7 @@ public class DataProcessingSystem {
         long systemStartTime = System.currentTimeMillis();
         
         // Create shared resources
-        SharedTaskQueue taskQueue = new SharedTaskQueue();
+        BlockingQueue<Task> taskQueue = new LinkedBlockingQueue<>();
         List<TaskResult> results = Collections.synchronizedList(new ArrayList<>());
         Object resultsLock = new Object();
         
@@ -55,8 +57,10 @@ public class DataProcessingSystem {
             // Add tasks to the queue
             addTasksToQueue(taskQueue);
             
-            // Signal that no more tasks will be added
-            taskQueue.shutdown();
+            // Signal shutdown by adding poison pills for each worker
+            for (int i = 0; i < NUM_WORKERS; i++) {
+                taskQueue.put(new Task(-1, -1)); // Poison pill to signal shutdown
+            }
             
             // Shutdown executor gracefully
             executor.shutdown();
@@ -88,6 +92,7 @@ public class DataProcessingSystem {
         } catch (Exception e) {
             logger.severe("Unexpected error in main thread: " + e.getMessage());
             e.printStackTrace();
+            executor.shutdownNow();
         } finally {
             logger.info("=== Data Processing System Terminated ===");
         }
@@ -116,7 +121,7 @@ public class DataProcessingSystem {
      * Adds tasks to the shared queue
      * @param taskQueue The shared task queue
      */
-    private static void addTasksToQueue(SharedTaskQueue taskQueue) {
+    private static void addTasksToQueue(BlockingQueue<Task> taskQueue) throws InterruptedException {
         logger.info("Adding tasks to queue...");
         
         // String[] dataTypes = {
@@ -125,13 +130,14 @@ public class DataProcessingSystem {
         //     "TransactionData", "SensorData", "ReportData", "MetricsData"
         // };
         
-        // All tasks will compute Fibonacci(30) for consistent CPU-intensive work
+        // All tasks will compute Fibonacci(43) for consistent CPU-intensive work
         int fibNumber = 43;
         
         for (int i = 1; i <= NUM_TASKS; i++) {
             // String data = dataTypes[(i - 1) % dataTypes.length] + "_" + i;
             Task task = new Task(i, fibNumber);
-            taskQueue.addTask(task);
+            taskQueue.put(task); // Blocking put - waits if queue is full
+            logger.info("Task " + i + " added to queue. Queue size: " + taskQueue.size());
         }
         
         logger.info("All tasks added to queue (each computing Fibonacci(" + fibNumber + "))");

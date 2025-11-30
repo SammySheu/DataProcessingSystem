@@ -2,6 +2,7 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.BlockingQueue;
 import java.util.logging.Logger;
 
 /**
@@ -12,12 +13,12 @@ public class WorkerThread implements Runnable {
     private static final Logger logger = Logger.getLogger(WorkerThread.class.getName());
     
     private final String workerName;
-    private final SharedTaskQueue taskQueue;
+    private final BlockingQueue<Task> taskQueue;
     private final List<TaskResult> results;
     private final Object resultsLock;
     private int tasksProcessed;
 
-    public WorkerThread(String workerName, SharedTaskQueue taskQueue, 
+    public WorkerThread(String workerName, BlockingQueue<Task> taskQueue, 
                        List<TaskResult> results, Object resultsLock) {
         this.workerName = workerName;
         this.taskQueue = taskQueue;
@@ -32,15 +33,13 @@ public class WorkerThread implements Runnable {
         
         try {
             while (true) {
-                Task task = null;
-                
                 try {
-                    // Retrieve task from shared queue
-                    task = taskQueue.getTask();
+                    // Retrieve task from blocking queue (blocks until available)
+                    Task task = taskQueue.take();
                     
-                    if (task == null) {
-                        // Queue is shutting down and empty
-                        logger.info(workerName + " received shutdown signal");
+                    // Check for poison pill (shutdown signal)
+                    if (task.getTaskId() == -1) {
+                        logger.info(workerName + " received shutdown signal (poison pill)");
                         break;
                     }
                     
